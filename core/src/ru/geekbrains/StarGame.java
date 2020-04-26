@@ -8,20 +8,25 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class StarGame extends ApplicationAdapter {
 	SpriteBatch batch;
-	Texture img;
+	Texture img, backgroundImage;
+	float xPos, yPos;
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
 		img = new Texture("badlogic.jpg");
+		backgroundImage = new Texture("space.jpg");
+		xPos = 0; yPos = 0;
 	}
 
 	@Override
 	public void render () {
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		xPos++; yPos++;
 		batch.begin();
-		batch.draw(img, 0, 0);
+		batch.draw(backgroundImage, 0, 0);
+		batch.draw(img, xPos, yPos);
 		batch.end();
 	}
 	
@@ -29,5 +34,6 @@ public class StarGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		img.dispose();
+		backgroundImage.dispose();
 	}
 }
