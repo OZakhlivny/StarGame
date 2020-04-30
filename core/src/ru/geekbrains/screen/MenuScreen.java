@@ -27,7 +27,8 @@ public class MenuScreen extends BaseScreen {
     @Override
     public void render(float delta) {
         super.render(delta);
-        if(position.epsilonEquals(touchPosition, 1)) velocity.set(0, 0);
+        //if(position.epsilonEquals(touchPosition, 1)) velocity.set(0, 0);
+        if(touchPosition.cpy().sub(position).len() < velocity.len()) velocity.set(0, 0);
         position.add(velocity);
         batch.begin();
         batch.draw(backgroundImage, 0, 0);
