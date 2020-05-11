@@ -1,6 +1,5 @@
 package ru.geekbrains.screen;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 
@@ -9,39 +8,31 @@ import ru.geekbrains.base.BaseScreen;
 import ru.geekbrains.math.Rect;
 import ru.geekbrains.sprite.Background;
 import ru.geekbrains.sprite.ExitButton;
-import ru.geekbrains.sprite.PlayButton;
+import ru.geekbrains.sprite.Logo;
 
-public class MenuScreen extends BaseScreen {
+public class GameScreen extends BaseScreen {
 
     private StarGame game;
-    private GameScreen gameScreen;
-
-    private Texture backgroundImage, exitButtonImage, playButtonImage;
+    private MenuScreen menuScreen;
+    private Texture logoImage, backgroundImage, exitButtonImage;
     private Background background;
+    private Logo logo;
     private ExitButton exitButton;
-    private PlayButton playButton;
 
-    public MenuScreen(StarGame game) {
+    public GameScreen(MenuScreen menuScreen, StarGame game) {
+        this.menuScreen = menuScreen;
         this.game = game;
-        gameScreen = new GameScreen(this, game);
     }
 
     @Override
     public void show() {
         super.show();
-        backgroundImage = new Texture("space.jpg");
-        playButtonImage = new Texture("play.png");
+        backgroundImage = new Texture("game_back.jpg");
+        logoImage = new Texture("ufo.png");
         exitButtonImage = new Texture("exit.png");
         background = new Background(backgroundImage);
-        playButton = new PlayButton(playButtonImage);
+        logo = new Logo(logoImage);
         exitButton = new ExitButton(exitButtonImage);
-    }
-
-    @Override
-    public void resize(Rect worldBounds) {
-        background.resize(worldBounds);
-        playButton.resize(worldBounds);
-        exitButton.resize(worldBounds);
     }
 
     @Override
@@ -49,15 +40,16 @@ public class MenuScreen extends BaseScreen {
         super.render(delta);
         batch.begin();
         background.draw(batch);
-        playButton.draw(batch);
+        logo.draw(batch);
         exitButton.draw(batch);
         batch.end();
     }
 
-    public void clearResources(){
-        backgroundImage.dispose();
-        playButtonImage.dispose();
-        exitButtonImage.dispose();
+    @Override
+    public void resize(Rect worldBounds) {
+        background.resize(worldBounds);
+        logo.resize(worldBounds);
+        exitButton.resize(worldBounds);
     }
 
     @Override
@@ -66,20 +58,25 @@ public class MenuScreen extends BaseScreen {
         super.dispose();
     }
 
+    public void clearResources(){
+        logoImage.dispose();
+        backgroundImage.dispose();
+        exitButtonImage.dispose();
+    }
+
     @Override
     public boolean touchDown(Vector2 touch, int pointer, int button) {
-        playButton.touchDown(touch, pointer, button);
         exitButton.touchDown(touch, pointer, button);
+        logo.touchDown(touch, pointer, button);
         return false;
     }
 
     @Override
     public boolean touchUp(Vector2 touch, int pointer, int button) {
-        if(playButton.touchUp(touch, pointer, button)){
+        if (exitButton.touchUp(touch, pointer, button)) {
             clearResources();
-            game.setScreen(gameScreen);
+            game.setScreen(menuScreen);
         }
-        if (exitButton.touchUp(touch, pointer, button)) Gdx.app.exit();
         return false;
     }
 }
