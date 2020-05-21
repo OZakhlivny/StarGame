@@ -2,26 +2,20 @@ package ru.geekbrains.sprite;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
-import ru.geekbrains.base.Sprite;
+import ru.geekbrains.base.Ship;
 import ru.geekbrains.math.Rect;
 import ru.geekbrains.pool.BulletPool;
+import ru.geekbrains.pool.ExplosionPool;
 
-public class Starship extends Sprite {
+public class Starship extends Ship {
 
     private static final float SIZE = 0.15f;
     private static final float MARGIN = 0.05f;
     private static final int INVALID_POINTER = -1;
-    private static final float SHOOT_INTERVAL = 0.5f;
-
-    private Rect worldBounds;
-
-    private final Vector2 velocityZero;
-    private final Vector2 velocity;
+    private static final int HP = 100;
 
     private int leftPointer;
     private int rightPointer;
@@ -29,38 +23,32 @@ public class Starship extends Sprite {
     private boolean pressedLeft;
     private boolean pressedRight;
 
-    private boolean autoFire;
 
-    private BulletPool bulletPool;
-    private TextureRegion bulletRegion;
-    private Vector2 bulletV;
-
-    private final Sound bulletSound;
-    private float shootTimer;
-
-
-    public Starship(TextureAtlas atlas, BulletPool bulletPool) {
-        super(atlas.findRegion("main_ship"), 2, 1);
+    public Starship(TextureAtlas atlas, BulletPool bulletPool, ExplosionPool explosionPool) {
+        super(atlas.findRegion("main_ship"), 1, 2, 2);
         this.bulletPool = bulletPool;
-        velocity = new Vector2();
-        velocityZero = new Vector2(0.5f, 0);
+        this.explosionPool = explosionPool;
+        velocityZero.set(0.5f, 0);
         bulletV = new Vector2(0, 0.5f);
         bulletRegion = atlas.findRegion("bulletMainShip");
+        bulletHeight = 0.01f;
+        damage = 1;
         leftPointer = rightPointer = INVALID_POINTER;
-        bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/bullet.wav"));
-        autoFire = false;
+        hp = HP;
+        bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/laser.wav"));
+        shootTimer = shootInterval = 0.5f;
     }
 
     @Override
     public void resize(Rect worldBounds) {
-        this.worldBounds = worldBounds;
+        super.resize(worldBounds);
         setHeightProportion(SIZE);
         setBottom(worldBounds.getBottom() + MARGIN);
     }
 
     @Override
     public void update(float delta) {
-        pos.mulAdd(velocity, delta);
+        super.update(delta);
         if (getLeft() < worldBounds.getLeft()) {
             stop();
             setLeft(worldBounds.getLeft());
@@ -68,13 +56,6 @@ public class Starship extends Sprite {
         if (getRight() > worldBounds.getRight()) {
             stop();
             setRight(worldBounds.getRight());
-        }
-        if(autoFire) {
-            shootTimer += delta;
-            if (shootTimer >= SHOOT_INTERVAL) {
-                shoot();
-                shootTimer = 0f;
-            }
         }
     }
 
@@ -119,7 +100,7 @@ public class Starship extends Sprite {
                 moveRight();
                 break;
             case Keys.UP:
-                if(autoFire) autoFire = false;
+                autoFire = false;
                 shoot();
                 break;
             case Keys.SPACE:
@@ -159,9 +140,9 @@ public class Starship extends Sprite {
         velocity.setZero();
     }
 
-    private void shoot() {
-        Bullet bullet = bulletPool.obtain();
-        bullet.set(this, bulletRegion, pos, bulletV, 0.01f, worldBounds, 1);
-        bulletSound.play();
+    public void dispose(){
+        bulletSound.dispose();
     }
+
+
 }
