@@ -9,17 +9,19 @@ import com.badlogic.gdx.math.Vector2;
 import java.util.List;
 
 import ru.geekbrains.base.BaseScreen;
+import ru.geekbrains.base.Ship;
 import ru.geekbrains.pool.EnemyShipsPool;
 import ru.geekbrains.math.Rect;
 import ru.geekbrains.pool.BulletPool;
+import ru.geekbrains.pool.ExplosionPool;
 import ru.geekbrains.sprite.Background;
 import ru.geekbrains.sprite.Bullet;
 import ru.geekbrains.sprite.EnemyShip;
 import ru.geekbrains.sprite.Star;
 import ru.geekbrains.sprite.Starship;
+import ru.geekbrains.utils.EnemyEmitter;
 
 public class GameScreen extends BaseScreen {
-    private static final float ENEMY_RISE_INTERVAL = 2.5f;
 
     private final Sound explosionSound = Gdx.audio.newSound(Gdx.files.internal("sounds/explosion.wav"));
     private Texture backgroundImage;
@@ -28,9 +30,9 @@ public class GameScreen extends BaseScreen {
     private Starship starship;
     private Star[] stars;
     private BulletPool bulletPool;
+    private ExplosionPool explosionPool;
     private EnemyShipsPool enemyShipsPool;
-
-    private float enemyRiseTimer;
+    private EnemyEmitter enemyEmitter;
 
     @Override
     public void show() {
@@ -39,10 +41,12 @@ public class GameScreen extends BaseScreen {
         background = new Background(backgroundImage);
         atlas = new TextureAtlas(Gdx.files.internal("textures/mainAtlas.tpack"));
         bulletPool = new BulletPool();
-        starship = new Starship(atlas, bulletPool);
+        explosionPool = new ExplosionPool(atlas);
+        starship = new Starship(atlas, bulletPool, explosionPool);
         stars = new Star[64];
         for (int i = 0; i < stars.length; i++) stars[i] = new Star(atlas);
-        enemyShipsPool = new EnemyShipsPool();
+        enemyShipsPool = new EnemyShipsPool(bulletPool, explosionPool, worldBounds);
+        enemyEmitter = new EnemyEmitter(atlas, enemyShipsPool);
     }
 
     @Override
@@ -58,11 +62,13 @@ public class GameScreen extends BaseScreen {
         background.resize(worldBounds);
         for (Star star : stars) star.resize(worldBounds);
         starship.resize(worldBounds);
+        enemyEmitter.resize(worldBounds);
     }
 
     private void free() {
         bulletPool.freeAllDestroyed();
         enemyShipsPool.freeAllDestroyed();
+        explosionPool.freeAllDestroyed();
     }
 
     @Override
@@ -72,6 +78,8 @@ public class GameScreen extends BaseScreen {
         bulletPool.dispose();
         enemyShipsPool.dispose();
         explosionSound.dispose();
+        explosionPool.dispose();
+        starship.dispose();
         super.dispose();
     }
 
@@ -104,14 +112,12 @@ public class GameScreen extends BaseScreen {
         bulletPool.updateActiveSprites(delta);
         starship.update(delta);
         enemyShipsPool.updateActiveSprites(delta);
-        enemyRiseTimer += delta;
-        if (enemyRiseTimer >= ENEMY_RISE_INTERVAL) {
-            EnemyShip enemyShip = enemyShipsPool.obtain();
-            enemyShip.set(atlas, getWorldBounds());
-            enemyRiseTimer = 0f;
-        }
+        explosionPool.updateActiveSprites(delta);
+        enemyEmitter.generate(delta);
         checkTargets();
+        checkCollisions();
     }
+
 
     private void draw(){
         batch.begin();
@@ -120,6 +126,7 @@ public class GameScreen extends BaseScreen {
         starship.draw(batch);
         bulletPool.drawActiveSprites(batch);
         enemyShipsPool.drawActiveSprites(batch);
+        explosionPool.drawActiveSprites(batch);
         batch.end();
     }
 
@@ -127,14 +134,24 @@ public class GameScreen extends BaseScreen {
         List<EnemyShip> enemyShipList = enemyShipsPool.getActiveObjects();
         List<Bullet> bulletList = bulletPool.getActiveObjects();
 
-        for(EnemyShip enemyShip : enemyShipList){
-            for(Bullet bullet : bulletList){
-                if(enemyShip.isMe(bullet.pos)){
-                    explosionSound.play();
+        for(Bullet bullet : bulletList){
+            for(EnemyShip enemyShip : enemyShipList) {
+                if (enemyShip.isMe(bullet.pos) && !((Ship) (bullet.getOwner())).isFriendlyFire()) {
                     bullet.destroy();
                     enemyShip.destroy();
                 }
             }
+            if((bullet.getOwner() != starship) && starship.isMe(bullet.pos)){
+                bullet.destroy();
+                starship.destroy();
+            }
+        }
+    }
+
+    private void checkCollisions() {
+        List<EnemyShip> enemyShipList = enemyShipsPool.getActiveObjects();
+        for(EnemyShip enemyShip : enemyShipList) {
+            if(!enemyShip.isOutside(starship)) enemyShip.destroy();
         }
     }
 }
