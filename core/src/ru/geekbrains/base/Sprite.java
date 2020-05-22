@@ -27,16 +27,6 @@ public class Sprite extends Rect {
         regions = Regions.split(region, rows, cols, frames);
     }
 
-    public Sprite(TextureRegion region, int xDivide, int yDivide){
-        if(xDivide <= 0) xDivide = 1;
-        if(yDivide <= 0) yDivide = 1;
-        regions = new TextureRegion[xDivide * yDivide];
-        TextureRegion[][] frames = region.split(region.getRegionWidth() / xDivide, region.getRegionHeight()/yDivide);
-        for(int i = 0; i < yDivide; i++)
-            for (int j = 0; j < xDivide; j++)
-                regions[i * xDivide + j] = new TextureRegion(frames[i][j]);
-    }
-
     public void setHeightProportion(float height) {
         setHeight(height);
         float aspect = regions[frame].getRegionWidth() / (float) regions[frame].getRegionHeight();

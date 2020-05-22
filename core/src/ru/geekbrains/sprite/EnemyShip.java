@@ -11,23 +11,19 @@ import ru.geekbrains.pool.ExplosionPool;
 
 public class EnemyShip extends Ship {
     private static final float ENTERING_SPEED = -0.7f;
-    private boolean inFight;
 
     public EnemyShip(BulletPool bulletPool, ExplosionPool explosionPool, Rect worldBounds, Sound sound) {
         super(bulletPool, explosionPool, worldBounds, sound);
-        friendlyFire = true;
-        inFight = false;
     }
 
     @Override
     public void update(float delta) {
         super.update(delta);
-        if(!inFight &&(getTop() <= worldBounds.getTop())) {
+        if(getTop() < worldBounds.getTop()) {
             velocity.set(velocityZero);
-            autoFire = inFight = true;
-            shootTimer = shootInterval;
+            bulletPos.set(pos.x, pos.y - getHalfHeight());
+            autoShoot(delta);
         }
-
         if (getBottom() <= worldBounds.getBottom()) destroy();
     }
 
@@ -49,15 +45,14 @@ public class EnemyShip extends Ship {
         this.bulletV.set(0, bulletVY);
         this.damage = damage;
         this.shootInterval = shootInterval;
-        this.shootTimer = 0;
+        this.shootTimer = shootInterval;
         this.hp = hp;
         setHeightProportion(height);
         this.velocity.set(0, ENTERING_SPEED);
     }
 
-    @Override
-    public void destroy() {
-        super.destroy();
-        inFight = false;
+    public boolean isBulletCollision(Bullet bullet) {
+        return !(bullet.getRight() < getLeft() || bullet.getLeft() > getRight()
+                || bullet.getBottom() > getTop() || bullet.getTop() < pos.y);
     }
 }

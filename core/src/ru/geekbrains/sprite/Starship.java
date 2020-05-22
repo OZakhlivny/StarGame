@@ -49,6 +49,8 @@ public class Starship extends Ship {
     @Override
     public void update(float delta) {
         super.update(delta);
+        bulletPos.set(pos.x, pos.y + getHalfHeight());
+        if(autoFire) autoShoot(delta);
         if (getLeft() < worldBounds.getLeft()) {
             stop();
             setLeft(worldBounds.getLeft());
@@ -128,6 +130,14 @@ public class Starship extends Ship {
         return false;
     }
 
+    public boolean isBulletCollision(Bullet bullet) {
+        return !(bullet.getRight() < getLeft()
+                || bullet.getLeft() > getRight()
+                || bullet.getBottom() > pos.y
+                || bullet.getTop() < getBottom()
+        );
+    }
+
     private void moveRight() {
         velocity.set(velocityZero);
     }
@@ -143,6 +153,4 @@ public class Starship extends Ship {
     public void dispose(){
         bulletSound.dispose();
     }
-
-
 }
