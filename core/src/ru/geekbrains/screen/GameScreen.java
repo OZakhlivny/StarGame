@@ -16,6 +16,7 @@ import ru.geekbrains.sprite.Background;
 import ru.geekbrains.sprite.Bullet;
 import ru.geekbrains.sprite.EnemyShip;
 import ru.geekbrains.sprite.GameOver;
+import ru.geekbrains.sprite.NewGameButton;
 import ru.geekbrains.sprite.Star;
 import ru.geekbrains.sprite.Starship;
 import ru.geekbrains.utils.EnemyEmitter;
@@ -35,6 +36,7 @@ public class GameScreen extends BaseScreen {
     private EnemyEmitter enemyEmitter;
     private State state;
     private GameOver gameOver;
+    private NewGameButton newGameButton;
 
     @Override
     public void show() {
@@ -50,6 +52,7 @@ public class GameScreen extends BaseScreen {
         enemyShipsPool = new EnemyShipsPool(bulletPool, explosionPool, worldBounds);
         enemyEmitter = new EnemyEmitter(atlas, enemyShipsPool);
         gameOver = new GameOver(atlas);
+        newGameButton = new NewGameButton(atlas, this);
         state = State.PLAYING;
     }
 
@@ -69,6 +72,7 @@ public class GameScreen extends BaseScreen {
         starship.resize(worldBounds);
         enemyEmitter.resize(worldBounds);
         gameOver.resize(worldBounds);
+        newGameButton.resize(worldBounds);
     }
 
     private void free() {
@@ -91,12 +95,14 @@ public class GameScreen extends BaseScreen {
     @Override
     public boolean touchDown(Vector2 touch, int pointer, int button) {
         if(state == State.PLAYING) starship.touchDown(touch, pointer, button);
+        else if(state == State.GAME_OVER) newGameButton.touchDown(touch, pointer, button);
         return false;
     }
 
     @Override
     public boolean touchUp(Vector2 touch, int pointer, int button) {
         if(state == State.PLAYING) starship.touchUp(touch, pointer, button);
+        else if(state == State.GAME_OVER) newGameButton.touchUp(touch, pointer, button);
         return false;
     }
 
@@ -161,10 +167,21 @@ public class GameScreen extends BaseScreen {
             starship.draw(batch);
             bulletPool.drawActiveSprites(batch);
             enemyShipsPool.drawActiveSprites(batch);
-        } else if (state == State.GAME_OVER) gameOver.draw(batch);
+        } else if (state == State.GAME_OVER) {
+            gameOver.draw(batch);
+            newGameButton.draw(batch);
+        }
 
         explosionPool.drawActiveSprites(batch);
         batch.end();
     }
 
+    public void newGame() {
+        this.state = State.PLAYING;
+        starship.flushDestroy();
+        starship.setLeft(0 - starship.getHalfWidth());
+        bulletPool.clearPool();
+        enemyShipsPool.clearPool();
+        explosionPool.clearPool();
+    }
 }

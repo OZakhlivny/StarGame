@@ -15,7 +15,7 @@ public class Starship extends Ship {
     private static final float SIZE = 0.15f;
     private static final float MARGIN = 0.05f;
     private static final int INVALID_POINTER = -1;
-    private static final int HP = 100;
+    private static final int HP = 10;
 
     private int leftPointer;
     private int rightPointer;
@@ -152,5 +152,14 @@ public class Starship extends Ship {
 
     public void dispose(){
         bulletSound.dispose();
+    }
+
+    @Override
+    public void flushDestroy() {
+        super.flushDestroy();
+        hp = HP;
+        leftPointer = rightPointer = INVALID_POINTER;
+        autoFire = false;
+        stop();
     }
 }
