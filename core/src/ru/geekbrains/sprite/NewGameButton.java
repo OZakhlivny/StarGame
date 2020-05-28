@@ -10,6 +10,9 @@ import ru.geekbrains.screen.GameScreen;
 public class NewGameButton extends ScaledButton {
 
     private GameScreen gameScreen;
+    private static final float ANIMATE_INTERVAL = 1f;
+    private boolean scaleUp = true;
+    private float animateTimer;
 
     public NewGameButton(TextureAtlas atlas, GameScreen gameScreen) {
         super(atlas.findRegion("button_new_game"));
@@ -25,5 +28,16 @@ public class NewGameButton extends ScaledButton {
     @Override
     public void action() {
         gameScreen.newGame();
+    }
+
+    @Override
+    public void update(float delta) {
+        animateTimer += delta;
+        if (animateTimer >= ANIMATE_INTERVAL) {
+            animateTimer = 0f;
+            scaleUp = !scaleUp;
+        }
+        if (scaleUp) setScale(getScale() + 0.003f);
+        else setScale(getScale() - 0.003f);
     }
 }

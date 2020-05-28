@@ -15,7 +15,7 @@ public class Starship extends Ship {
     private static final float SIZE = 0.15f;
     private static final float MARGIN = 0.05f;
     private static final int INVALID_POINTER = -1;
-    private static final int HP = 10;
+    private static final int HP = 100;
 
     private int leftPointer;
     private int rightPointer;
@@ -33,10 +33,9 @@ public class Starship extends Ship {
         bulletRegion = atlas.findRegion("bulletMainShip");
         bulletHeight = 0.01f;
         damage = 1;
-        leftPointer = rightPointer = INVALID_POINTER;
-        hp = HP;
         bulletSound = Gdx.audio.newSound(Gdx.files.internal("sounds/laser.wav"));
         shootTimer = shootInterval = 0.5f;
+        startNewGame();
     }
 
     @Override
@@ -63,14 +62,17 @@ public class Starship extends Ship {
 
     @Override
     public boolean touchDown(Vector2 touch, int pointer, int button) {
-        if (touch.x < worldBounds.pos.x) {
-            if (leftPointer != INVALID_POINTER) return false;
-            leftPointer = pointer;
-            moveLeft();
-        } else {
-            if (rightPointer != INVALID_POINTER) return false;
-            rightPointer = pointer;
-            moveRight();
+        if(isMe(touch)) autoFire = !autoFire;
+        else {
+            if (touch.x < worldBounds.pos.x) {
+                if (leftPointer != INVALID_POINTER) return false;
+                leftPointer = pointer;
+                moveLeft();
+            } else {
+                if (rightPointer != INVALID_POINTER) return false;
+                rightPointer = pointer;
+                moveRight();
+            }
         }
         return false;
     }
@@ -154,12 +156,12 @@ public class Starship extends Ship {
         bulletSound.dispose();
     }
 
-    @Override
-    public void flushDestroy() {
-        super.flushDestroy();
+    public void startNewGame(){
         hp = HP;
         leftPointer = rightPointer = INVALID_POINTER;
-        autoFire = false;
+        pressedLeft = pressedRight = false;
+        this.pos.x = 0;
         stop();
+        flushDestroy();
     }
 }
