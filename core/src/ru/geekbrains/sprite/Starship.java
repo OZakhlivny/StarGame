@@ -156,6 +156,12 @@ public class Starship extends Ship {
         bulletSound.dispose();
     }
 
+    @Override
+    public void damage(int damage) {
+        super.damage(damage);
+        hp = hp > HP ? HP : hp;
+    }
+
     public void startNewGame(){
         hp = HP;
         leftPointer = rightPointer = INVALID_POINTER;
